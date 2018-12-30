@@ -26,7 +26,7 @@ contract SupplyChain {
     Received
     (declaring them in this order is important for testing)
   */
-  enum State {ForSale, Sold, Shipped, Received};
+  enum State {ForSale, Sold, Shipped, Received}
 
   /* Create a struct named Item.
     Here, add a name, sku, price, state, seller, and buyer
@@ -50,12 +50,25 @@ contract SupplyChain {
     event LogShipped(uint sku);
     event LogReceived(uint sku);
 
-/* Create a modifer that checks if the msg.sender is the owner of the contract */
+    /* Create a modifer that checks if the msg.sender is the owner of the contract */
+    // Do not forget the "_;"! It will
+    // be replaced by the actual function
+    // body when the modifier is used.
+  
+  modifier verifyCaller (address _address) 
+    { 
+      require (msg.sender == _address, "message sender is not owner");
+      _;
+    }
 
-  modifier verifyCaller (address _address) { require (msg.sender == _address); _;}
-
-  modifier paidEnough(uint _price) { require(msg.value >= _price); _;}
-  modifier checkValue(uint _sku) {
+  modifier paidEnough(uint _price)
+  { 
+      require(msg.value >= _price, "not paid enough"); 
+      _;
+  }
+  
+  modifier checkValue(uint _sku) 
+  {
     //refund them after pay for item (why it is before, _ checks for logic before func)
     _;
     uint _price = items[_sku].price;
@@ -66,19 +79,45 @@ contract SupplyChain {
   /* For each of the following modifiers, use what you learned about modifiers
    to give them functionality. For example, the forSale modifier should require
    that the item with the given sku has the state ForSale. */
-  modifier forSale
-  modifier sold
-  modifier shipped
-  modifier received
+  
+  modifier forSale (uint _sku)
+  {
+      State _state = items[_sku].state;
+      require(_state==ForSale, "not for sale"); 
+      _;
+  }
+  
+  modifier sold (uint _sku)
+  {
+      State _state = items[_sku].state;
+      require(_state==Sold, "not sold"); 
+      _;
+  }
+  
+  modifier shipped (uint _sku)
+  {
+      State _state = items[_sku].state;
+      require(_state==Shippped, "not shipped"); 
+      _;
+  }
+  
+  modifier received (uint _sku)
+  {
+      State _state = items[_sku].state;
+      require(_state==Received, "not received"); 
+      _;
+  }
 
 
   constructor() public {
     /* Here, set the owner as the person who instantiated the contract
        and set your skuCount to 0. */
+    owner=msg.sender;
+    skuCount=0;
   }
 
-  function addItem(string _name, uint _price) public returns(bool){
-    emit ForSale(skuCount);
+  function addItem(string memory _name, uint _price) public returns(bool){
+    emit forSale(skuCount);
     items[skuCount] = Item({name: _name, sku: skuCount, price: _price, state: State.ForSale, seller: msg.sender, buyer: address(0)});
     skuCount = skuCount + 1;
     return true;
@@ -107,7 +146,7 @@ contract SupplyChain {
   {}
 
   /* We have these functions completed so we can run tests, just ignore it :) */
-  function fetchItem(uint _sku) public view returns (string name, uint sku, uint price, uint state, address seller, address buyer) {
+  function fetchItem(uint _sku) public view returns (string memory name, uint sku, uint price, uint state, address seller, address buyer) {
     name = items[_sku].name;
     sku = items[_sku].sku;
     price = items[_sku].price;
