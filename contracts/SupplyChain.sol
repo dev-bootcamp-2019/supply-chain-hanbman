@@ -38,8 +38,8 @@ contract SupplyChain {
         uint sku;
         uint price;
         State state;
-        address seller;
-        address buyer;
+        address payable seller;
+        address payable buyer;
     }
 
   /* Create 4 events with the same name as each possible State (see above)
@@ -73,7 +73,8 @@ contract SupplyChain {
     _;
     uint _price = items[_sku].price;
     uint amountToRefund = msg.value - _price;
-    items[_sku].buyer.transfer(amountToRefund);
+    if (amountToRefund>0)
+        items[_sku].buyer.transfer(amountToRefund);
   }
 
   /* For each of the following modifiers, use what you learned about modifiers
@@ -83,28 +84,28 @@ contract SupplyChain {
   modifier forSale (uint _sku)
   {
       State _state = items[_sku].state;
-      require(_state==ForSale, "not for sale"); 
+      require(_state==State.ForSale, "not for sale"); 
       _;
   }
   
   modifier sold (uint _sku)
   {
       State _state = items[_sku].state;
-      require(_state==Sold, "not sold"); 
+      require(_state==State.Sold, "not sold"); 
       _;
   }
   
   modifier shipped (uint _sku)
   {
       State _state = items[_sku].state;
-      require(_state==Shippped, "not shipped"); 
+      require(_state==State.Shipped, "not shipped"); 
       _;
   }
   
   modifier received (uint _sku)
   {
       State _state = items[_sku].state;
-      require(_state==Received, "not received"); 
+      require(_state==State.Received, "not received"); 
       _;
   }
 
@@ -116,8 +117,11 @@ contract SupplyChain {
     skuCount=0;
   }
 
-  function addItem(string memory _name, uint _price) public returns(bool){
-    emit forSale(skuCount);
+  function addItem(string memory _name, uint _price) 
+  public 
+  returns(bool)
+  {
+    emit LogForSale(skuCount);
     items[skuCount] = Item({name: _name, sku: skuCount, price: _price, state: State.ForSale, seller: msg.sender, buyer: address(0)});
     skuCount = skuCount + 1;
     return true;
@@ -129,24 +133,47 @@ contract SupplyChain {
     if the buyer paid enough, and check the value after the function is called to make sure the buyer is
     refunded any excess ether sent. Remember to call the event associated with this function!*/
 
-  function buyItem(uint sku)
+  function buyItem(uint _sku)
     public
-  {}
+    payable
+    forSale (_sku)
+    paidEnough (items[_sku].price)
+    checkValue (_sku)
+  {
+    items[_sku].seller.transfer(items[_sku].price);
+    items[_sku].buyer=msg.sender;
+    items[_sku].state=State.Sold;
+    emit LogForSale(_sku);
+  }
 
   /* Add 2 modifiers to check if the item is sold already, and that the person calling this function
   is the seller. Change the state of the item to shipped. Remember to call the event associated with this function!*/
-  function shipItem(uint sku)
+  function shipItem(uint _sku)
     public
-  {}
+    sold (_sku)
+    verifyCaller(items[_sku].seller)
+  {
+    items[_sku].state=State.Shipped;
+    emit LogShipped(_sku);
+  }
 
   /* Add 2 modifiers to check if the item is shipped already, and that the person calling this function
   is the buyer. Change the state of the item to received. Remember to call the event associated with this function!*/
-  function receiveItem(uint sku)
+  function receiveItem(uint _sku)
     public
-  {}
+    shipped (_sku)
+    verifyCaller(items[_sku].buyer)
+  {
+    items[_sku].state=State.Received;
+    emit LogReceived(_sku);
+  }
 
   /* We have these functions completed so we can run tests, just ignore it :) */
-  function fetchItem(uint _sku) public view returns (string memory name, uint sku, uint price, uint state, address seller, address buyer) {
+  function fetchItem(uint _sku) 
+  public 
+  view 
+  returns (string memory name, uint sku, uint price, uint state, address seller, address buyer) 
+  {
     name = items[_sku].name;
     sku = items[_sku].sku;
     price = items[_sku].price;
