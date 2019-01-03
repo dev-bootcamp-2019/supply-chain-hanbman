@@ -45,10 +45,10 @@ contract SupplyChain {
   /* Create 4 events with the same name as each possible State (see above)
     Each event should accept one argument, the sku*/
 
-    event LogForSale(uint sku);
-    event LogSold(uint sku);
-    event LogShipped(uint sku);
-    event LogReceived(uint sku);
+    event ForSale(uint sku);
+    event Sold(uint sku);
+    event Shipped(uint sku);
+    event Received(uint sku);
 
     /* Create a modifer that checks if the msg.sender is the owner of the contract */
     // Do not forget the "_;"! It will
@@ -121,7 +121,7 @@ contract SupplyChain {
   public 
   returns(bool)
   {
-    emit LogForSale(skuCount);
+    emit ForSale(skuCount);
     items[skuCount] = Item({name: _name, sku: skuCount, price: _price, state: State.ForSale, seller: msg.sender, buyer: address(0)});
     skuCount = skuCount + 1;
     return true;
@@ -143,7 +143,7 @@ contract SupplyChain {
     items[_sku].seller.transfer(items[_sku].price);
     items[_sku].buyer=msg.sender;
     items[_sku].state=State.Sold;
-    emit LogForSale(_sku);
+    emit ForSale(_sku);
   }
 
   /* Add 2 modifiers to check if the item is sold already, and that the person calling this function
@@ -154,7 +154,7 @@ contract SupplyChain {
     verifyCaller(items[_sku].seller)
   {
     items[_sku].state=State.Shipped;
-    emit LogShipped(_sku);
+    emit Shipped(_sku);
   }
 
   /* Add 2 modifiers to check if the item is shipped already, and that the person calling this function
@@ -165,7 +165,7 @@ contract SupplyChain {
     verifyCaller(items[_sku].buyer)
   {
     items[_sku].state=State.Received;
-    emit LogReceived(_sku);
+    emit Received(_sku);
   }
 
   /* We have these functions completed so we can run tests, just ignore it :) */
