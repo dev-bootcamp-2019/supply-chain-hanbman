@@ -110,7 +110,7 @@ contract SupplyChain {
   }
 
 
-  constructor() public {
+  constructor() payable public {
     /* Here, set the owner as the person who instantiated the contract
        and set your skuCount to 0. */
     owner=msg.sender;
