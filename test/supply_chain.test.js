@@ -5,6 +5,8 @@ using Truffle version 5.0. You can check this by running "trufffle version"  in 
 installed, you can uninstall the existing version with `npm uninstall -g truffle` and install the latest version (5.0)
 with `npm install -g truffle`.
 
+Try again
+
 */
 
 var SupplyChain = artifacts.require('SupplyChain')
