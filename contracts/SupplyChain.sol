@@ -143,7 +143,7 @@ contract SupplyChain {
     items[_sku].seller.transfer(items[_sku].price);
     items[_sku].buyer=msg.sender;
     items[_sku].state=State.Sold;
-    emit ForSale(_sku);
+    emit Sold(_sku);
   }
 
   /* Add 2 modifiers to check if the item is sold already, and that the person calling this function
